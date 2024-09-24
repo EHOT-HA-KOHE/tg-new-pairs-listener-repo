@@ -5,25 +5,38 @@ from .base_ethereum_parser import EthTgParser
 
 
 @track_channel
-class EthOttoETHDeployments(EthTgParser):
-    """ https://t.me/OttoETHDeployments """
+class EthVerifiedETHTokens(EthTgParser):
+    """ https://t.me/gm_verified """
 
-    _CHANEL_ID = -1001844431042
+    _CHANEL_ID = '-1002008381526'
+    # _CHANEL_ID = -1002125707421
 
     def __init__(self, message: Message) -> None:
         super().__init__(message)
 
     def find_token_name(self) -> str | None:
-        raise NotImplementedError
+        header = self.message[0]
+        name = header.split(" | ")[-1].strip()
+        return name
 
     def find_token_symbol(self) -> str | None:
-        raise NotImplementedError
+        header = self.message[0]
+        symbol = header.split("#")[-1].strip().split(" ")[0]
+        return symbol
 
     def find_token_address(self) -> str | None:
-        raise NotImplementedError
-
+        return self.message[2].strip()
+    
     def find_token_pool_address(self) -> str | None:
-        raise NotImplementedError
+        return None
 
     def find_chat_url(self) -> str | None:
-        raise NotImplementedError
+        if " TG" in self.message[4]:
+            for entity in self.message_entity:
+                if entity.type == MessageEntityType.TEXT_LINK:
+                    res = find_tg_url(entity.url)
+                    if res:
+                        return res
+
+        return None
+
