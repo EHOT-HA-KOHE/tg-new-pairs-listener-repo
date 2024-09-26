@@ -27,7 +27,7 @@ class TgParser:
         self.portal_url = self.find_chat_url()
 
     @classmethod
-    def get_chanel_id(cls) -> int:
+    def get_channel_id(cls) -> int:
         if cls._CHANEL_ID:
             return cls._CHANEL_ID
         raise NotImplementedError

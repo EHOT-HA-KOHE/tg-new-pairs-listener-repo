@@ -1,14 +1,14 @@
 from pyrogram.types import Message
 
-from src.tg_parsers.register_parsers import track_channel
+from src.tg_parsers.register_parsers import register_parser
 from .base_ton_parser import TonTgParser
 
 
-@track_channel
+@register_parser
 class TonNewTonPairs(TonTgParser):
     """ https://t.me/NewTonPairs """
     
-    _CHANEL_ID = '-1002070002579'
+    _CHANEL_ID = -1002070002579
     # _CHANEL_ID = -1002000050228
 
     def __init__(self, message: Message) -> None:

@@ -1,14 +1,14 @@
 from pyrogram.types import Message
 
-from src.tg_parsers.register_parsers import track_channel
+from src.tg_parsers.register_parsers import register_parser
 from .base_solana_parser import SolanaTgParser
 
 
-@track_channel
-class SolanaSolanaNewTokenMints(SolanaTgParser):
-    """ https://t.me/solanatokenmints """
+@register_parser
+class SolanaSolanaScanner(SolanaTgParser):
+    """ https://t.me/solanascanner """
     
-    _CHANEL_ID = '-1001802262411'
+    _CHANEL_ID = -1002023951506
     # _CHANEL_ID = -1002125707421
 
     def __init__(self, message: Message) -> None:

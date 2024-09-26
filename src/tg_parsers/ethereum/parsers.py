@@ -1,15 +1,14 @@
 from pyrogram.types import Message
 
-from src.tg_parsers.register_parsers import track_channel
+from src.tg_parsers.register_parsers import register_parser
 from .base_ethereum_parser import EthTgParser
 
 
-@track_channel
+@register_parser
 class EthVerifiedETHTokens(EthTgParser):
     """ https://t.me/gm_verified """
 
-    _CHANEL_ID = '-1002008381526'
-    # _CHANEL_ID = -1002125707421
+    _CHANEL_ID = -1002008381526
 
     def __init__(self, message: Message) -> None:
         super().__init__(message)

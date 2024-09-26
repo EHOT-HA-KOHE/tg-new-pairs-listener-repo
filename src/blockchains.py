@@ -10,4 +10,4 @@ class Blockchain:
     
     PUMP = "PUMP.FUN"
     Call = "CALL"
-
+    Test = "Test"
