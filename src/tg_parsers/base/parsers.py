@@ -1,10 +1,12 @@
-from pyrogram.types import Message
+import re
+
+from telethon.tl.types import Message
 
 from src.tg_parsers.register_parsers import register_parser
 from .base_base_parser import BaseTgParser
 
 
-# @register_parser
+@register_parser
 class BaseBaseNewPairsTrending(BaseTgParser):
     """ https://t.me/UnibotBaseScanner """
 
@@ -14,16 +16,25 @@ class BaseBaseNewPairsTrending(BaseTgParser):
         super().__init__(message)
 
     def find_token_name(self) -> str | None:
-        return self.message[1]
+        match = re.search(r'🪙(.*?)\(', self.message[2])
+        if match:
+            return match.group(1).strip()
+        return None
 
     def find_token_symbol(self) -> str | None:
-        return self.message[1]
+        match = re.search(r'\(s*(.*?)s*\)', self.message[2])
+        if match:
+            return match.group(1).strip()
+        return None
 
     def find_token_address(self) -> str | None:
-        return self.message[1]
+        if '🔖' in self.message[3]:
+            return self.message[3].split('🔖')[-1].strip()
+        return None
 
     def find_token_pool_address(self) -> str | None:
-        return self.message[1]
+        return None
 
     def find_chat_url(self) -> str | None:
-        return self.message[1]
+        return None
+    

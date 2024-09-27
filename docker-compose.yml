@@ -3,6 +3,8 @@ version: '3.8'
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.2.1
+    container_name: tg-new-pairs-listener-repo-zookeeper
+    restart: always
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -11,6 +13,8 @@ services:
 
   kafka:
     image: confluentinc/cp-kafka:7.2.1
+    container_name: tg-new-pairs-listener-repo-kafka
+    restart: always
     depends_on:
       - zookeeper
     ports:
@@ -24,6 +28,8 @@ services:
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
+    container_name: tg-new-pairs-listener-repo-kafka_ui
+    restart: always
     depends_on:
       - kafka
     ports:
@@ -34,12 +40,16 @@ services:
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
 
   tg-new-pairs-listener:
+    container_name: tg-new-pairs-listener-repo-tg_listener
+    restart: always
     build:
-      context: .  # Указываем, что Dockerfile находится в текущей директории
+      context: .
     depends_on:
-      - kafka  # Зависимость от Kafka
+      - kafka
     environment:
-      - START_IN_DOCKER: True
-      - KAFKA_BROKER: kafka:9092  # Указываем адрес брокера Kafka
+      START_IN_DOCKER: True
+      KAFKA_BROKER: kafka:9092
     volumes:
-      - ./logs:/app/logs  # Монтируем директорию для логов
+      - ./logs:/app/logs
+    stdin_open: true  # For input TG auth code
+    tty: true         # For input TG auth code

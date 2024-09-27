@@ -1,4 +1,4 @@
-from pyrogram.types import Message
+from telethon.tl.types import Message
 
 from src.blockchains import Blockchain
 from ..base_parser import TgParser

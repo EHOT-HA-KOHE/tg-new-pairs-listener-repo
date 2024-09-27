@@ -1,41 +1,59 @@
-from pyrogram.types import Message
+import re
+
+from telethon.tl.types import Message
 
 from src.tg_parsers.register_parsers import register_parser
 from .base_ethereum_parser import EthTgParser
 
 
 @register_parser
-class EthVerifiedETHTokens(EthTgParser):
-    """ https://t.me/gm_verified """
+class EthiTokenEthereum(EthTgParser):
+    """ https://t.me/iTokenEthereum """
 
-    _CHANEL_ID = -1002008381526
+    _CHANEL_ID = -1001696523760
 
     def __init__(self, message: Message) -> None:
+        self._post_types = {'Deployed', 'Verified', 'Launching', 'Locked'}
         super().__init__(message)
 
+    def _is_correct_post(self, line) -> bool:
+        if any(post_type in line for post_type in self._post_types):
+            return True
+        else:
+            return False
+
     def find_token_name(self) -> str | None:
-        header = self.message[0]
-        name = header.split(" | ")[-1].strip()
-        return name
+        match = re.search(r'\(([^)]+)\)', self.message[0])
+        if match:
+            return match.group(1).strip()
+        return None
 
     def find_token_symbol(self) -> str | None:
-        header = self.message[0]
-        symbol = header.split("#")[-1].strip().split(" ")[0]
-        return symbol
+        line_without_name = self.message[0].split("(")[0].strip()
+        return line_without_name.split(" ")[-1].strip()
 
     def find_token_address(self) -> str | None:
-        return self.message[2].strip()
+        if not self._is_correct_post(self.message[0]):
+            return None
+
+        for line in self.message:
+            if line.startswith("CA: "):
+                return line.split('CA: ')[-1].strip()
+
+        return None
     
     def find_token_pool_address(self) -> str | None:
         return None
 
     def find_chat_url(self) -> str | None:
-        if " TG" in self.message[4]:
-            for entity in self.message_entity:
-                if entity.type == MessageEntityType.TEXT_LINK:
-                    res = find_tg_url(entity.url)
-                    if res:
-                        return res
+        if not self._is_correct_post(self.message[0]):
+            return None
 
-        return None
+        if "Deployed:" in self.message[0]:
+            return None
 
+        if any("TG 🤷‍♂️" in line for line in self.message[4:14]):
+            return None
+
+        else:
+            return self.message_hidden_links.get("TG", [None])[0]

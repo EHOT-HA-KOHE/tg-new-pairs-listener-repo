@@ -1,46 +1,33 @@
-from datetime import datetime
 import os
-
-from dotenv import load_dotenv
 
 from confluent_kafka import Producer
 
-from src.loguru_config import logger
 
+broker = os.getenv('KAFKA_BROKER', 'kafka:9092')
 
-# Загрузка переменных окружения из .env файла
-# load_dotenv('../.env')
-
-# Получение адреса брокера из переменных окружения
-# if START_IN_DOCKER
-# broker = os.getenv('KAFKA_BROKER', '127.0.0.1:9092')
-broker = 'kafka:9092'
-
-# Конфигурация Kafka Producer
 producer = Producer({'bootstrap.servers': broker})
 
 
-def save_and_alarm_new_pool_by_kafka(address: str, dex_name: str, network: str, created_at: str) -> None:
-    # web_socket_topic = 'show-new-pool-ws'
-    # save_to_db_topic = 'save-new-pool-to-db'
+def save_and_alarm_new_pool_by_kafka(
+        token_address: str, token_pool_address: str | None, 
+        token_name: str | None, token_symbol: str | None, 
+        dex_name: str | None, network: str, 
+        created_at: str, portal_url: str | None, creator: str | None
+    ) -> None:
 
-    # Формирование данных для отправки
     data = {
-        "address": address,
+        "token_address": token_address,
+        "token_pool_address": token_pool_address,
+        "token_name": token_name,
+        "token_symbol": token_symbol,
         "dex_name": dex_name,
         "network": network,
         "created_at": created_at,
+        "portal_url": portal_url,
+        "creator": creator,
     }
 
-    # Отправка данных в оба топика
     producer.produce('show-new-pool-ws', key='key', value=str(data))
     producer.produce('save-new-pool-to-db', key='key', value=str(data))
 
-    # Отправка всех сообщений
     producer.flush()
-
-
-if __name__ == '__main__':
-    print('make_test_23097634')
-    # save_add_alarm_about_new_pool_by_kafka('LOL_COIN', 'RADIUM', 'SOL')
-    # save_add_alarm_about_new_pool_by_kafka('NOT_LOL_COIN', 'UNISWAP', 'BASE')

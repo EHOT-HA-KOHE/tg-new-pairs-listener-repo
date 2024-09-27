@@ -1,10 +1,10 @@
+from datetime import datetime
 import json
 
-from pyrogram.types import Message
-from pyrogram.enums import MessageEntityType
+from telethon.tl.patched import Message
+from telethon.tl.types import MessageEntityTextUrl, MessageEntityUrl, MessageEntityMention
 
 from src.blockchains import Blockchain
-# from src.kafka_producer import save_and_alarm_new_pool_by_kafka
 
 
 class TgParser:
@@ -14,17 +14,17 @@ class TgParser:
 
     
     def __init__(self, message: Message):
-        self.message_text = message.text or message.caption
-        message_entities = message.entities or message.caption_entities
-
+        self.message_text = message.message
         self.message = self.message_text.split('\n')
-        self.message_hidden_links = self._get_message_hidden_links(self.message_text, message_entities)
+
+        self.message_hidden_links = self._get_message_hidden_links(message)
 
         self.token_name = self.find_token_name()
         self.token_symbol = self.find_token_symbol()
         self.token_address = self.find_token_address()
         self.token_pool_address = self.find_token_pool_address()
         self.portal_url = self.find_chat_url()
+        self.created_at = datetime.now().isoformat()
 
     @classmethod
     def get_channel_id(cls) -> int:
@@ -54,24 +54,22 @@ class TgParser:
         raise NotImplementedError
 
     @staticmethod
-    def _get_message_hidden_links(text: str, entities: list) -> dict:
+    def _get_message_hidden_links(message: Message) -> dict:
+
         urls = {}
 
-        if entities is None:
-            return {}
-
-        for entity in entities:
-            if entity.type == MessageEntityType.TEXT_LINK:
+        for entity, text in message.get_entities_text():
+            if isinstance(entity, MessageEntityTextUrl):
                 ''' Text links: [LINK](https://example.com) '''
-                key = text[entity.offset:entity.offset + entity.length]
+                key = text
                 if key in urls:
-                    urls[key].append(entity.url)
+                    urls[text].append(entity.url)
                 else:
-                    urls[key] = [entity.url]
+                    urls[text] = [entity.url]
 
-            if entity.type == MessageEntityType.URL:
+            elif isinstance(entity, MessageEntityUrl):
                 ''' URLs: t.me/some_link or example.com'''
-                url_text = text[entity.offset:entity.offset + entity.length]
+                url_text = text
 
                 if any(url_text.startswith(start) for start in ('https://t.me/', 'https://telegram.me/')):
                     link = url_text
@@ -94,31 +92,36 @@ class TgParser:
                 else:
                     urls[key] = [link]
 
-            if entity.type == MessageEntityType.MENTION:
+            elif isinstance(entity, MessageEntityMention):
                 ''' Telegram names: @some_name '''
                 key = 'TG'
-                link = f'https://t.me/{text[(entity.offset + 1):entity.offset + entity.length]}'
+                link = f'https://t.me/{text[1:]}'
                 if key in urls:
                     urls[key].append(link)
                 else:
                     urls[key] = [link]
 
         return urls
+
         
-    def dict(self) -> dict:
+    def dict(self) -> dict:    
         return {
-            "name": self.token_name,
-            "symbol": self.token_symbol,
-            "network": self._NETWORK,
             "token_address": self.token_address,
             "token_pool_address": self.token_pool_address,
-            "creator": "Unknown",
-            "portal_url": self.portal_url
+            "token_name": self.token_name,
+            "token_symbol": self.token_symbol,
+            "dex_name": None,
+            "network": self._NETWORK,
+            "created_at": self.created_at,
+            "portal_url": self.portal_url,
+            "creator": None,
         }
 
     def json(self) -> str:
         return json.dumps(self.dict())
     
-    def save(self) -> None:
-        # save_and_alarm_new_pool_by_kafka(self.dict())
-        ...
+    def is_correct_to_save(self) -> None:
+        if self.token_address:
+            return True
+        else:
+            return False
