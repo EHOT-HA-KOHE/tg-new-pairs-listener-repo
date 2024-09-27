@@ -3,6 +3,23 @@
 ## Start Project
 
 ```bash
+cp example.telegram.env telegram.env
+```
+Enter the values of your variables in telegram.env:
+
+```
+API_ID=
+API_HASH=
+PHONE_NUMBER=
+```
+
+---
+
+---
+
+Start docker-compose:
+
+```bash
 docker-composwe up -d
 ```
 
